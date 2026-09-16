@@ -50,6 +50,21 @@ yarn pr-review:console    # 终端 2：前端 Vite，127.0.0.1:5173
 
 **可选配置**：复制 `.env.pr-review.example` 为 `.env`，可接入 DeepSeek / Qwen 真实模型（配置对应 API Key 与模型即可，详见 `docs/pr-review/06-environment-and-api-config.md`）。
 
+## 配置 API Key
+
+默认使用  模式，无需任何 API Key，直接启动即可使用完整控制台。
+
+如需接入真实 LLM 审核，复制  为  并填写对应 provider 的 key：
+
+| 环境变量 | Provider | 说明 |
+| --- | --- | --- |
+| `DEEPSEEK_API_KEY` | DeepSeek | 用于 LLM 智能体审核 |
+| `DASHSCOPE_API_KEY` + `QWEN_BASE_URL` | Qwen (阿里云) | 用于 LLM 智能体审核 + 视觉多模态分析 |
+| `PR_REVIEW_EXECUTION_MODE` | — | 设为 `hybrid` 启用真实 LLM 审核（默认 `mock`） |
+| `PR_REVIEW_VISION_PROVIDER=qwen` | — | 启用 Qwen VL 图片视觉分析 |
+
+详细配置见 [docs/pr-review/06-environment-and-api-config.md](docs/pr-review/06-environment-and-api-config.md)。
+
 ## 文档
 
 产品设计、架构、API 合同与开发规范见 [`docs/pr-review/`](./docs/pr-review/)。
