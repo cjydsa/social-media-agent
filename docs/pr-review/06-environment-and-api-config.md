@@ -182,6 +182,15 @@ SPRINT-005 引入 Full-Stack Console 的 composition root 配置，全部有安�
 - 上传目录只保存用户主动上传的素材文件，不保存 secret；文件名由服务端随机生成。
 - safe config/doctor 输出包含上述 host/port/dir/mode/seed，不含任何凭据。
 
+## 5.3 SPRINT-006 vision 变量
+
+| Variable                   | Default | Secret | Purpose                                             |
+| -------------------------- | ------- | ------ | --------------------------------------------------- |
+| `PR_REVIEW_VISION_PROVIDER` | `mock`  | No     | 视觉分析 provider；`qwen` 走 DashScope 视觉模型     |
+| `PR_REVIEW_VISION_MODEL`    | （空）   | No     | 视觉模型 ID；qwen 时建议 `qwen-vl-plus`             |
+
+仅在 `hybrid` 执行模式且 vision provider 非 mock、模型与 `DASHSCOPE_API_KEY`/`QWEN_BASE_URL` 完整时启用真实视觉分析；否则含图 Case 的 `MULTIMODAL_EVIDENCE` 记 missing 并强制人工（fail closed）。
+
 ## 6. Local setup and doctor
 
 Copy `.env.pr-review.example` to `.env` only when overrides or credentials are needed. Never edit or commit another user's `.env`.

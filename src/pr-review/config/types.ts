@@ -50,12 +50,18 @@ export interface AppConfig {
 }
 
 export type AuthMode = "dev-header";
+export type VisionProvider = "mock" | "qwen";
 
 export interface ServerConfig {
   host: string;
   uploadDir: string;
   authMode: AuthMode;
   demoSeed: boolean;
+}
+
+export interface VisionConfig {
+  provider: VisionProvider;
+  model: string | null;
 }
 
 export interface LLMConfig {
@@ -119,6 +125,7 @@ export interface FeatureConfig {
 export interface PrReviewConfig {
   app: AppConfig;
   server: ServerConfig;
+  vision: VisionConfig;
   llm: LLMConfig;
   roleModelPolicy: RoleModelPolicyConfig;
   providers: ProviderConfigurationStatus;
@@ -133,6 +140,7 @@ export interface PrReviewConfig {
 export interface SafePrReviewConfig {
   app: AppConfig;
   server: ServerConfig;
+  vision: VisionConfig;
   llm: Omit<LLMConfig, "apiKey"> & { apiKeyConfigured: boolean };
   roleModelPolicy: RoleModelPolicyConfig;
   providers: ProviderConfigurationStatus;

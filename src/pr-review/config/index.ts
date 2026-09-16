@@ -40,6 +40,10 @@ export function createConfig(env: ParsedPrReviewEnv): PrReviewConfig {
       authMode: env.PR_REVIEW_AUTH_MODE,
       demoSeed: env.PR_REVIEW_DEMO_SEED,
     }),
+    vision: Object.freeze({
+      provider: env.PR_REVIEW_VISION_PROVIDER,
+      model: env.PR_REVIEW_VISION_MODEL ?? null,
+    }),
     llm: buildLLMConfig(env),
     roleModelPolicy: buildRoleModelPolicy(env),
     providers: buildProviderConfigurationStatus(env),
@@ -70,6 +74,7 @@ export function getSafeConfig(
   return {
     app: candidate.app,
     server: candidate.server,
+    vision: candidate.vision,
     llm: {
       provider: candidate.llm.provider,
       model: candidate.llm.model,

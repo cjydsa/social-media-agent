@@ -26,12 +26,19 @@ import { critiqueEvidence } from "../agents/evidence-critic.js";
 import { judgeReview } from "../agents/decision-judge.js";
 import { proposeRevision } from "../agents/revision-agent.js";
 import { applyPolicyGuard } from "../policy/policy-guard.js";
+import type { ReviewAgentSet } from "../llm/runtime-agents.js";
 
 export interface BuildReviewGraphOptions {
   checkpointer: BaseCheckpointSaver;
   evidenceToolset: EvidenceToolset;
   policy: ReviewPolicy;
   scenarioResolver: ReviewScenarioResolver;
+  /**
+   * Optional LLM-backed agents (SPRINT-006). Missing ports fall back to the
+   * deterministic implementations; an agent failure is recorded in
+   * `failures` and fail-closed by the Policy Guard.
+   */
+  agents?: Partial<ReviewAgentSet>;
 }
 
 function requireValue<T>(value: T | undefined, name: string): T {
@@ -66,9 +73,23 @@ function tightenedHumanDecision(
 }
 
 export function buildReviewGraph(options: BuildReviewGraphOptions) {
+  const agents = options.agents ?? {};
+
   const specialistNode =
-    (dimension: ReviewDimension) => (state: ReviewState) => {
+    (dimension: ReviewDimension) => async (state: ReviewState) => {
       try {
+        if (agents.reviewDimension) {
+          return {
+            dimensionResults: [
+              await agents.reviewDimension({
+                dimension,
+                input: state.input,
+                plan: requireValue(state.plan, "plan"),
+                evidence: state.evidence,
+              }),
+            ],
+          };
+        }
         return {
           dimensionResults: [
             runSpecialist(
@@ -96,16 +117,45 @@ export function buildReviewGraph(options: BuildReviewGraphOptions) {
       terminalStage: undefined,
       pendingInterrupt: null,
     }))
-    .addNode("review_planner", (state: ReviewState) => ({
-      plan: createReviewPlan(
-        state.input,
-        options.scenarioResolver(state.input),
-      ),
-    }))
+    .addNode("review_planner", async (state: ReviewState) => {
+      if (agents.plan) {
+        try {
+          return { plan: await agents.plan(state.input) };
+        } catch (error) {
+          // Deterministic fallback keeps the graph moving; the recorded
+          // failure still forces fail-closed handling downstream.
+          return {
+            plan: createReviewPlan(
+              state.input,
+              options.scenarioResolver(state.input),
+            ),
+            failures: [
+              {
+                code: "REVIEWER_FAILED",
+                message:
+                  error instanceof Error
+                    ? error.message
+                    : "LLM planner failed; deterministic fallback used.",
+                retryable: true,
+                source: "MODEL" as const,
+                details: { role: "planner" },
+              },
+            ],
+          };
+        }
+      }
+      return {
+        plan: createReviewPlan(
+          state.input,
+          options.scenarioResolver(state.input),
+        ),
+      };
+    })
     .addNode("evidence_planning", async (state: ReviewState) => {
       const result = await options.evidenceToolset.collect(
         requireValue(state.plan, "plan"),
         options.scenarioResolver(state.input),
+        state.input,
       );
       return { evidence: result.evidence, evidenceCoverage: result.coverage };
     })
@@ -114,20 +164,86 @@ export function buildReviewGraph(options: BuildReviewGraphOptions) {
     .addNode("product_review", specialistNode("PRODUCT"))
     .addNode("customer_review", specialistNode("CUSTOMER"))
     .addNode("compliance_safety_review", specialistNode("COMPLIANCE_SAFETY"))
-    .addNode("evidence_critic", (state: ReviewState) => ({
-      critic: critiqueEvidence(
-        state.dimensionResults,
-        requireValue(state.evidenceCoverage, "evidenceCoverage"),
-        options.scenarioResolver(state.input),
-      ),
-    }))
-    .addNode("decision_judge", (state: ReviewState) => ({
-      judge: judgeReview(
-        state.dimensionResults,
-        requireValue(state.critic, "critic"),
-        options.policy,
-      ),
-    }))
+    .addNode("evidence_critic", async (state: ReviewState) => {
+      if (agents.critique) {
+        try {
+          return {
+            critic: await agents.critique({
+              input: state.input,
+              results: state.dimensionResults,
+              coverage: requireValue(state.evidenceCoverage, "evidenceCoverage"),
+            }),
+          };
+        } catch (error) {
+          return {
+            critic: critiqueEvidence(
+              state.dimensionResults,
+              requireValue(state.evidenceCoverage, "evidenceCoverage"),
+              options.scenarioResolver(state.input),
+            ),
+            failures: [
+              {
+                code: "REVIEWER_FAILED",
+                message:
+                  error instanceof Error
+                    ? error.message
+                    : "LLM critic failed; deterministic fallback used.",
+                retryable: true,
+                source: "MODEL" as const,
+                details: { role: "critic" },
+              },
+            ],
+          };
+        }
+      }
+      return {
+        critic: critiqueEvidence(
+          state.dimensionResults,
+          requireValue(state.evidenceCoverage, "evidenceCoverage"),
+          options.scenarioResolver(state.input),
+        ),
+      };
+    })
+    .addNode("decision_judge", async (state: ReviewState) => {
+      if (agents.judge) {
+        try {
+          return {
+            judge: await agents.judge({
+              input: state.input,
+              results: state.dimensionResults,
+              critic: requireValue(state.critic, "critic"),
+            }),
+          };
+        } catch (error) {
+          return {
+            judge: judgeReview(
+              state.dimensionResults,
+              requireValue(state.critic, "critic"),
+              options.policy,
+            ),
+            failures: [
+              {
+                code: "REVIEWER_FAILED",
+                message:
+                  error instanceof Error
+                    ? error.message
+                    : "LLM judge failed; deterministic fallback used.",
+                retryable: true,
+                source: "MODEL" as const,
+                details: { role: "judge" },
+              },
+            ],
+          };
+        }
+      }
+      return {
+        judge: judgeReview(
+          state.dimensionResults,
+          requireValue(state.critic, "critic"),
+          options.policy,
+        ),
+      };
+    })
     .addNode("policy_guard", (state: ReviewState) => ({
       finalDecision: applyPolicyGuard({
         dimensionResults: state.dimensionResults,
@@ -141,9 +257,26 @@ export function buildReviewGraph(options: BuildReviewGraphOptions) {
         policy: options.policy,
       }),
     }))
-    .addNode("revision_agent", (state: ReviewState) => ({
-      revisionProposal: proposeRevision(state.dimensionResults),
-    }))
+    .addNode("revision_agent", async (state: ReviewState) => {
+      if (agents.revise) {
+        try {
+          return {
+            revisionProposal: await agents.revise({
+              input: state.input,
+              results: state.dimensionResults,
+              judge: requireValue(state.judge, "judge"),
+            }),
+          };
+        } catch {
+          return {
+            revisionProposal: proposeRevision(state.dimensionResults),
+          };
+        }
+      }
+      return {
+        revisionProposal: proposeRevision(state.dimensionResults),
+      };
+    })
     .addNode("await_human_review", (state: ReviewState) => {
       const descriptor = {
         type: "HUMAN_REVIEW" as const,

@@ -243,3 +243,9 @@ yarn pr-review:eval:validate
 - Frontend：本轮以 `tsc --noEmit` 与 `vite build` 作为验收；组件/浏览器 E2E 属于 TEST-003，不在本轮。
 
 SPRINT-005 所有测试真实 LLM/Social/Publisher 网络调用数必须为 0；HTTP 冒烟只走 127.0.0.1 ephemeral 端口。
+
+## 12. SPRINT-006 focused test matrix
+
+- hybrid graph（`tests/pr-review/unit/hybrid-graph.test.ts`）：注入 mock StructuredOutputModel（合法输出）→ 五维 LLM 分数与具体理由进入 dimensionResults 与 finalDecision；注入 schema 非法输出 → 该维度 fail closed + failures；注入 throw → REVIEWER_FAILED + 强制人工；mock 执行模式全程 LLM 调用数为 0。
+- visual analysis（`tests/pr-review/unit/visual-analysis.test.ts`）：mock VLM 响应 → `MULTIMODAL_EVIDENCE` EvidenceItem 形状/数量/内容；VLM 失败 → missing + 强制人工；vision=mock 时不发请求。
+- 既有测试零改动通过；真实模型只在手动 smoke/演示中出现。

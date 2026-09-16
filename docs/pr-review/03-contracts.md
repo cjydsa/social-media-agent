@@ -1536,6 +1536,7 @@ type ActorRole =
 ```
 
 - 三个 header 均 trim 后非空；role 必须是 `ActorRole` 之一，否则 `401 UNAUTHORIZED`。
+- HTTP header 只允许 ISO-8859-1：`x-actor-name` 含非 ASCII 字符（如中文显示名）时，客户端必须发送 `encodeURIComponent` 百分号编码值，服务端按 `decodeURIComponent` 解码；未编码的纯 ASCII 原值按原样接受（向后兼容）。`x-actor-id` 与 `x-actor-role` 保持 ASCII 标识符。
 - dev-header 是开发身份提供者，**不是生产安全模型**；生产 OIDC/SSO 适配器属于后续任务，接入前不得宣称具备生产级认证。
 - submitter/actor 一律来自该认证上下文。BE-001 冻结的 action DTO 中历史保留的 `actor` 字段仅作 fixture 兼容：服务端解析后**忽略**该字段，始终以 header actor 为准；任何审计、版本与动作记录都使用 header actor。
 - Zod schema 校验失败（缺字段、非法枚举、unknown field）映射为 `400 VALIDATION_ERROR`，不得落入 500。
@@ -1653,3 +1654,55 @@ MEDIA_MANAGER_APPROVAL -> SCHEDULING
 **其他动作**：REJECT：任意审核 stage -> `REJECTED`；ESCALATE：任意审核 stage -> `ESCALATED`；REVISE：任意审核 stage -> 新 version，stage 回到 `REQUESTER_SELF_CHECK` 并立即对新版本重新运行 engine（再走「创建后自动路由」）；SCHEDULE：`SCHEDULING -> COMPLETED`。
 
 **MVP 确定性推进**：本轮人工动作一律按上表在 Backend 确定性推进，不调用 `engine.resume(...)`；MemorySaver 是进程内执行状态，resume/durable checkpoint 恢复属于后续 BE-003 完整版任务。REVISE 后的重审使用新的 `engine.review(...)`（新 execution）。每条路径都必须：校验 actor/stage/expectedVersion、append-only 写 ReviewAction、保持 fail closed（engine 异常 -> `REVIEW_REQUIRED`，绝不产生 APPROVE）。
+
+## 12.8 SPRINT-006 合同扩展（Hybrid LLM Runtime 与 Vision Evidence）
+
+本节为非破坏性扩展；既有 schema、枚举、stage 语义不变。
+
+### 12.8.1 ReviewAgentSet port（Algorithm 内部，不进 API）
+
+```ts
+interface ReviewAgentSet {
+  plan(input: ReviewEngineInput): Promise<ReviewPlan>;
+  reviewDimension(payload: {
+    dimension: ReviewDimension;
+    input: ReviewEngineInput;
+    plan: ReviewPlan;
+    evidence: EvidenceItem[];
+  }): Promise<DimensionReviewResult>;
+  critique(payload: {
+    input: ReviewEngineInput;
+    results: DimensionReviewResult[];
+    coverage: EvidenceCoverage;
+  }): Promise<EvidenceCriticResult>;
+  judge(payload: {
+    input: ReviewEngineInput;
+    results: DimensionReviewResult[];
+    critic: EvidenceCriticResult;
+  }): Promise<JudgeRecommendation>;
+  revise(payload: {
+    input: ReviewEngineInput;
+    results: DimensionReviewResult[];
+    judge: JudgeRecommendation;
+  }): Promise<RevisionProposal>;
+}
+```
+
+`buildReviewGraph` 接受可选 `agents: Partial<ReviewAgentSet>`；缺省维度回退确定性实现。mock 执行模式下不得发生任何 LLM 调用。
+
+### 12.8.2 Hybrid 输出纪律
+
+- LLM 产出的 `DimensionReviewResult.reason` 必须是针对该维度分数的具体中文论证（引用原文片段/证据说明打分依据），不得输出模板句。
+- `issues[].textSpan` 提供时必须是原文合法 offset（0 ≤ start < end ≤ content.length）；非法 offset 由 schema/使用方丢弃，不得导致崩溃。
+- LLM 失败、timeout、schema parse 失败一律记 `failures` 并 fail closed（该维度 `REVIEW_REQUIRED`、整体强制人工），不得默认 PASS。
+
+### 12.8.3 Vision Evidence
+
+- `ReviewEvidenceSource` 已含 `MULTIMODAL_EVIDENCE`（冻结值，不新增枚举）。
+- 视觉分析产物以 `EvidenceItem{ sourceType: "MULTIMODAL_EVIDENCE" }` 进入证据池；内容包含 OCR 文字、画面要素描述与视觉风险观察。
+- 本地图片以 base64 data URL 发给视觉模型；图片字节不出服务端；请求不带任何账号凭据以外的信息。
+- `VISUAL` 仍不作为第六个一级风险维度，仅为证据来源。
+
+### 12.8.4 配置 additive
+
+`PR_REVIEW_VISION_PROVIDER`（`mock` | `qwen`，默认 `mock`）、`PR_REVIEW_VISION_MODEL`（默认空；qwen 时建议 `qwen-vl-plus`）。仅 config/env.ts 读取；hybrid 且 vision 配置完整时才启用视觉分析。

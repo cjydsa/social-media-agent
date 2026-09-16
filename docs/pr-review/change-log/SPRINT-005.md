@@ -156,6 +156,8 @@ SPRINT-004 完成后，Algorithm 五维多智能体引擎、RAG、结构化 LLM 
 - 2026-09-15：细读 `LangGraphReviewEngine` 后确认：`engine.resume(...)` 完成的是 graph 内部执行（直接产出 final decision），与业务多级人工 pipeline（OPERATOR/VISUAL/COMPLIANCE/MEDIA_MANAGER）不是同一语义；MemorySaver 进程重启即失效。MVP 人工动作一律按 12.7.6 转移表在 Backend 确定性推进，不调用 resume；REVISE 重审走新的 `engine.review(...)`。durable checkpoint + resume 恢复留给后续 BE-003 完整版。合同 12.7.6 已改为显式决策->stage 映射表。
 - 2026-09-15：orchestration 需要 stage 推进持久化，但 `ReviewCaseRepository` 只有 create/get/list。additive 新增 `updateCase`（仅 stage/updatedAt；合同 12.2 已同步）。不修改既有 revision transaction 语义。
 - 2026-09-15：HTTP 冒烟发现两处行为需冻结：(1) BE-001 action DTO 含必填 `actor` 字段（fixture 时代产物），SPRINT-005 服务端解析后忽略 body.actor、一律以 header actor 为准（合同 12.7.1 已明确）；(2) handler 直接 `schema.parse` 时 ZodError 落入 500，现统一在 HTTP 层把 ZodError 映射为 `400 VALIDATION_ERROR`（合同 12.7.1 已明确）。
+- 2026-09-16：浏览器实测发现中文 `x-actor-name` 触发 `String contains non ISO-8859-1 code point`（HTTP header 只允许 ISO-8859-1）。冻结约定：`x-actor-name` 的非 ASCII 取值一律使用 `encodeURIComponent` 百分号编码传输，服务端按 `decodeURIComponent` 解码（容忍未编码的纯 ASCII 原值）；`x-actor-id`/`x-actor-role` 维持 ASCII 标识符。合同 12.7.1 已同步。
+- 2026-09-16：agent-browser 实测发现详情页整树崩溃（React #310）：`ReviewDetail` 的 `selectedDiff` useMemo 位于 `if (!detail) return <Loading/>` 早退之后，首帧少调用一次 hook 触发 hooks 数量不一致。修复为所有 hooks 无条件置顶（实现层 bug，不涉及设计变更）；同时补充 `public/favicon.svg` 品牌图标。
 
 ## Implementation Result
 

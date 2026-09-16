@@ -28,6 +28,47 @@ export function buildLLMConfig(env: ParsedPrReviewEnv): LLMConfig {
   });
 }
 
+/**
+ * Build an LLMConfig for an arbitrary role selection (SPRINT-006 hybrid
+ * runtime). Secrets are resolved per provider exactly like buildLLMConfig;
+ * this stays the only secret-resolution path.
+ */
+export function buildLLMConfigForSelection(
+  env: ParsedPrReviewEnv,
+  selection: { provider: LLMConfig["provider"]; model: string | null },
+): LLMConfig {
+  const selectedKey = {
+    mock: undefined,
+    deepseek: env.DEEPSEEK_API_KEY,
+    qwen: env.DASHSCOPE_API_KEY,
+    openai: env.OPENAI_API_KEY,
+    anthropic: env.ANTHROPIC_API_KEY,
+  }[selection.provider];
+
+  return Object.freeze({
+    provider: selection.provider,
+    model: selection.model,
+    apiKey: secret(selectedKey),
+    baseUrl: selection.provider === "qwen" ? (env.QWEN_BASE_URL ?? null) : null,
+  });
+}
+
+/**
+ * Build the vision (image analysis) LLMConfig (SPRINT-006). Qwen defaults
+ * to qwen-vl-plus when no explicit model is configured; secrets reuse the
+ * DashScope key of the qwen provider.
+ */
+export function buildVisionLLMConfig(env: ParsedPrReviewEnv): LLMConfig | null {
+  if (env.PR_REVIEW_VISION_PROVIDER === "mock") return null;
+  const baseUrl = env.QWEN_BASE_URL ?? "https://dashscope.aliyuncs.com/compatible-mode/v1";
+  return Object.freeze({
+    provider: "qwen" as const,
+    model: env.PR_REVIEW_VISION_MODEL ?? "qwen-vl-plus",
+    apiKey: secret(env.DASHSCOPE_API_KEY),
+    baseUrl,
+  });
+}
+
 export function buildLangSmithConfig(env: ParsedPrReviewEnv): LangSmithConfig {
   return Object.freeze({
     tracingEnabled: env.LANGSMITH_TRACING,

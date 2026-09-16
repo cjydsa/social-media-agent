@@ -27,13 +27,27 @@ export interface ActorHeaderInput {
 }
 
 /**
+ * HTTP headers are ISO-8859-1 only. Non-ASCII display names (e.g. Chinese)
+ * travel as encodeURIComponent percent-encoded values (contracts 12.7.1);
+ * plain ASCII values are accepted as-is for backward compatibility.
+ */
+function decodeDisplayName(raw: string): string {
+  if (!raw.includes("%")) return raw;
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}
+
+/**
  * Development identity provider (PR_REVIEW_AUTH_MODE=dev-header).
  * This is NOT a production security boundary; it only exists so the
  * full-stack console can exercise role-based authorization locally.
  */
 export function parseActorFromHeaders(input: ActorHeaderInput): ReviewActor {
   const id = input.id?.trim() ?? "";
-  const displayName = input.displayName?.trim() ?? "";
+  const displayName = decodeDisplayName(input.displayName?.trim() ?? "");
   const role = input.role?.trim() ?? "";
 
   if (!id || !displayName || !role) {

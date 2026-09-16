@@ -16,6 +16,16 @@ Backend 只能通过冻结的 `ReviewEngine` port 调用 Algorithm。Reviewer �
 
 SPRINT-005（Full-Stack Console）**不改变任何 Algorithm 业务行为**：graph、五维 reviewer、RAG、Policy Guard、schema 全部冻结不变。本轮仅在 `src/pr-review/config/` additive 新增 server/upload/auth/seed 配置读取（见 `06-environment-and-api-config.md` 5.2），供 composition root（`src/pr-review/server/`）注入；Algorithm 代码不读取这些变量。Backend/Server 仍只能通过 `ReviewEngine` port 与 `reviewContent(...)` facade 调用 Algorithm。
 
+## 2.2 SPRINT-006 — Hybrid LLM 运行时接线
+
+SPRINT-006 把 ALG-004 的 LLM wrapper 正式接进 graph，**按执行模式分流，mock 行为完全不变**：
+
+- `buildReviewGraph` 新增可选 `agents: Partial<ReviewAgentSet>`：`plan/reviewDimension/critique/judge/revise` 五个 async port。未注入时节点走既有确定性实现；注入时走 LLM structured output（同一 `failures` fail-closed 通道）。
+- `llm/runtime-agents.ts`：由 `RoleModelPolicyConfig` 逐 role 调 `createReviewModel` 构建 agent 集（planner/specialist/critic/judge/revision）；每个 agent 携带 role 的 PromptDescriptor（v2 prompt）与 trace metadata；Algorithm 不读 env，模型构造仍只经 provider factory。
+- `llm/visual-analysis.ts`：`VisualEvidenceProvider`（默认 `qwen` + `qwen-vl-plus`），把本地上传图片读为 base64 data URL 发给视觉模型，产出 `MULTIMODAL_EVIDENCE` 类型 EvidenceItem（OCR 文字 + 画面要素 + 视觉风险观察）；未配置/失败时返回 missing，由 Policy Guard 强制人工。
+- v2 prompt 要求：每维 `reason` 必须是针对该分数的具体论证（引用原文与证据）；`issues[].textSpan` 给原文 offset；打分锚点 0–100 五档语义写入 prompt。
+- Policy Guard 输入输出不变，永远确定性。
+
 ## 3. Docs-first Gate
 
 修改 `src/pr-review/algorithm/**` 之前必须先：

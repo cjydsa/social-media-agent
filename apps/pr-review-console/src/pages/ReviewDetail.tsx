@@ -361,18 +361,7 @@ export function ReviewDetail() {
       ? final.revisionDirection
       : null;
 
-  if (error) return <ErrorState message={error} onRetry={load} />;
-  if (!detail) return <Loading text="加载审核详情…" />;
-
-  const { case: reviewCase, allowedActions } = detail;
-  const decisionTone = final ? riskTone(final.overallRiskScore) : "neutral";
-
-  const onActionDone = (newReceipt: PublishReceipt | null) => {
-    setModal(null);
-    if (newReceipt) setReceipt(newReceipt);
-    load();
-  };
-
+  // Hooks must run unconditionally before any early return (React #310).
   const selectedDiff = useMemo(() => {
     if (!history || !diffPair) return null;
     const [from, to] = diffPair;
@@ -385,6 +374,17 @@ export function ReviewDetail() {
       segments: diffText(vFrom.content, vTo.content),
     };
   }, [history, diffPair]);
+
+  if (error) return <ErrorState message={error} onRetry={load} />;
+  if (!detail) return <Loading text="加载审核详情…" />;
+
+  const { case: reviewCase, allowedActions } = detail;
+
+  const onActionDone = (newReceipt: PublishReceipt | null) => {
+    setModal(null);
+    if (newReceipt) setReceipt(newReceipt);
+    load();
+  };
 
   return (
     <div>

@@ -1,7 +1,6 @@
 import type {
   ApiErrorBody,
   ContentType,
-  PublishReceipt,
   ReviewActionResponse,
   ReviewCase,
   ReviewDetailResponse,
@@ -40,7 +39,9 @@ async function request<T>(
   const headers: Record<string, string> = {
     "content-type": "application/json",
     "x-actor-id": actor.id,
-    "x-actor-name": actor.displayName,
+    // HTTP headers are ISO-8859-1 only; non-ASCII names travel percent-encoded
+    // (contracts 12.7.1). The server decodes them.
+    "x-actor-name": encodeURIComponent(actor.displayName),
     "x-actor-role": actor.role,
     ...(init.headers as Record<string, string> | undefined),
   };

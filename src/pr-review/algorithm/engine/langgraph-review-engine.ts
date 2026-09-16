@@ -29,6 +29,7 @@ import {
 import { buildReviewGraph } from "../graph/build-review-graph.js";
 import { parseReviewPolicy } from "../policy/review-policy.js";
 import type { ReviewState } from "../state/review-state.js";
+import type { ReviewAgentSet } from "../llm/runtime-agents.js";
 
 interface ExecutionRecord {
   execution: ExecutionReference;
@@ -39,6 +40,8 @@ export interface LangGraphReviewEngineOptions {
   scenarioResolver?: ReviewScenarioResolver;
   evidenceToolset?: EvidenceToolset;
   checkpointer?: MemorySaver;
+  /** Optional LLM-backed agents (SPRINT-006 hybrid mode). */
+  agents?: Partial<ReviewAgentSet>;
 }
 
 function riskLevel(score: number): "LOW" | "MEDIUM" | "HIGH" {
@@ -208,6 +211,7 @@ export class LangGraphReviewEngine implements ReviewEngine {
   readonly #evidenceToolset: EvidenceToolset;
   readonly #policy: ReviewPolicy;
   readonly #scenarioResolver: ReviewScenarioResolver;
+  readonly #agents: Partial<ReviewAgentSet>;
   readonly #executions = new Map<string, ExecutionRecord>();
   #sequence = 0;
 
@@ -218,6 +222,7 @@ export class LangGraphReviewEngine implements ReviewEngine {
     this.#policy = parseReviewPolicy(options.policy);
     this.#scenarioResolver =
       options.scenarioResolver ?? defaultScenarioResolver;
+    this.#agents = options.agents ?? {};
   }
 
   async review(
@@ -260,6 +265,7 @@ export class LangGraphReviewEngine implements ReviewEngine {
       evidenceToolset: this.#evidenceToolset,
       policy: this.#policy,
       scenarioResolver: this.#scenarioResolver,
+      agents: this.#agents,
     });
     const state = (await graph.invoke(
       { input: inputResult.data, execution },
@@ -313,6 +319,7 @@ export class LangGraphReviewEngine implements ReviewEngine {
       evidenceToolset: this.#evidenceToolset,
       policy: this.#policy,
       scenarioResolver: this.#scenarioResolver,
+      agents: this.#agents,
     });
     const state = (await graph.invoke(
       new Command({ resume: inputResult.data }),

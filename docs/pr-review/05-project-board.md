@@ -33,7 +33,7 @@ DOCS-GATE-001
 
 ## IN PROGRESS
 
-- 暂无
+- SPRINT-006 — LLM 打分理由、多模态深度分析与 Prompt 工程（owner: WorkBuddy；started: 2026-09-16）
 
 ## BLOCKED
 
@@ -63,6 +63,7 @@ DOCS-GATE-001
 - ALG-004 — Brand RAG 与结构化 LLM Reviewers Enablement（completed: 2026-09-01；未执行真实 API smoke）
 - SPRINT-004 — Business Foundation & Real AI Enablement（completed: 2026-09-01）
 - SPRINT-005 — Full-Stack Console（completed: 2026-09-16；MVP 切片交付：BE-003 orchestration、BE-004 dev-header Auth、BE-005 MockPublisher、FE-001..004 控制台、INT-001 composition root；durable checkpoint/resume、生产 OIDC、真实 publisher、浏览器 E2E 与 Docker 仍属 BACKLOG）
+- SPRINT-006 — LLM 打分理由、多模态深度分析与 Prompt 工程（completed: 2026-09-16；hybrid 运行时接入 LLM structured agents、Qwen VL 多模态证据、v2 prompt 含 few-shot/打分锚点/cross-dimension conflict/fact-evidence alignment；27 suites / 213 tests 全绿；新增 hybrid-graph.test.ts 11 tests、visual-analysis.test.ts 8 tests；remote fork cjydsa/social-media-agent 已创建并推送）
 
 ## Acceptance evidence
 
@@ -81,3 +82,4 @@ DOCS-GATE-001
 - ALG-004：本地版本化 Knowledge Base、BM25 + simple vector + RRF、KnowledgeRetriever、Role Model Policy、LLM structured agent wrappers、prompt versioning、headless `reviewContent(...)` facade 完成；真实 DeepSeek/Qwen API 调用为 0。
 - SPRINT-004：BE-001、BE-002、DATA-002、TEST-004 Phase A 与 ALG-004 全部完成；Prettier、TypeScript、focused tests、全部 PR Review tests、docs checks、eval validate 与 `git diff --check` 见交付记录。
 - SPRINT-005：focused backend tests 4 suites / 25 tests、全部 PR Review tests（源 .ts）25 suites / 192 tests、根 tsc --noEmit、console tsc+vite build、PR Review 范围 Prettier、自动 docs gate（`--task SPRINT-005`）全部通过；curl E2E 冒烟覆盖 seed/越权/审批链/自我终审/排期幂等/409/422/400/401/415/上传/SPA 托管；真实 LLM/社媒/发布调用为 0。详见 `change-log/SPRINT-005.md` Validation Evidence。
+- SPRINT-006：hybrid 模式 LLM structured agents 注入、VisualEvidenceToolset 多模态证据、v2 prompt（few-shot + 打分锚点 + cross-dimension conflict + fact-evidence alignment）、vision evidence missing 强制 HUMAN_REVIEW；27 suites / 213 tests 全绿（新增 hybrid-graph.test.ts 11 + visual-analysis.test.ts 8）；tsc --noEmit 通过；docs gate 通过；remote fork cjydsa/social-media-agent 已创建并推送。

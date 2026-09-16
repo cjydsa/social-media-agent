@@ -69,6 +69,28 @@ describe("PR Review HTTP API (SPRINT-005)", () => {
     expect(typeof body.error.requestId).toBe("string");
   });
 
+  it("decodes percent-encoded non-ASCII actor display names", async () => {
+    const response = await fetch(`${baseUrl}/api/reviews`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-actor-id": "usr_cn",
+        "x-actor-name": encodeURIComponent("市场部小王"),
+        "x-actor-role": "REQUESTER",
+      },
+      body: JSON.stringify({
+        contentType: "SOCIAL_POST",
+        targetPlatform: ["WEIBO"],
+        content: "一条普通的运营动态。",
+        imageUrls: [],
+        sourceUrls: [],
+      }),
+    });
+    expect(response.status).toBe(201);
+    const body = await response.json();
+    expect(body.data.case.submitter.displayName).toBe("市场部小王");
+  });
+
   it("accepts uploads, sniffs magic bytes and serves the file", async () => {
     const upload = await fetch(`${baseUrl}/api/uploads`, {
       method: "POST",

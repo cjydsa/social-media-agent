@@ -82,6 +82,8 @@ export const prReviewEnvSchema = z
     PR_REVIEW_UPLOAD_DIR: z.string().trim().min(1).default("data/uploads"),
     PR_REVIEW_AUTH_MODE: z.enum(["dev-header"]).default("dev-header"),
     PR_REVIEW_DEMO_SEED: booleanValue(true),
+    PR_REVIEW_VISION_PROVIDER: z.enum(["mock", "qwen"]).default("mock"),
+    PR_REVIEW_VISION_MODEL: optionalString,
     PR_REVIEW_MAX_REVISION_COUNT: integerValue(3, 1, 100),
     EVAL_DATASET_PATH: z.string().trim().min(1).default("evals/pr-review/data"),
     TRACE_CONTENT_ENABLED: booleanValue(false),
