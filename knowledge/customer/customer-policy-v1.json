@@ -1,0 +1,9 @@
+{
+  "documentId": "customer_policy_v1",
+  "sourceType": "CUSTOMER",
+  "version": "customer-2026-09-01",
+  "effectiveAt": "2026-09-01T00:00:00.000Z",
+  "title": "客服承诺表达边界",
+  "content": "公开内容不得承诺所有问题当天解决、无条件赔偿或任何时间立刻响应，除非服务政策明确支持。应使用可执行、可核验且有边界的表达。",
+  "tags": ["customer", "service-policy", "expectation"]
+}

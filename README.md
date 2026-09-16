@@ -1,5 +1,54 @@
 # Social Media Agent
 
+> **本仓库在 LangChain 原版 Social Media Agent 之上，内置了一套企业级「公关内容 AI 多智能体审核系统」（PR Review）。下面是该系统的快速启动指南；原版功能见下文 legacy 文档。**
+
+## PR Review — 企业公网内容 AI 审核系统
+
+面向企业官方账号的内容发布前审核：**五维 AI 多智能体（公关舆情 / 运营渠道 / 产品事实 / 客户用户 / 合规安全）自动审核 + 多级人工审批 + 不可变版本与审计 + Mock 排期**，前后端分离交付。
+
+- 设计文档：[`docs/pr-review/`](./docs/pr-review/)（PRD、架构、冻结合同、Docs-first 工作流）
+- 算法：`src/pr-review/algorithm/`（LangGraph 五维审核图、Policy Guard fail-closed）
+- 后端：`src/pr-review/backend/` + `src/pr-review/server/`（编排、RBAC、MockPublisher、Express composition root）
+- 前端：`apps/pr-review-console/`（React + Vite 审核控制台）
+
+### 一键启动（无需任何 API Key）
+
+```bash
+yarn install                                  # 根项目依赖（首次）
+yarn --cwd apps/pr-review-console install     # 前端依赖（首次）
+yarn pr-review:console:build                  # 构建前端产物
+yarn pr-review:server                         # 启动：http://127.0.0.1:3001
+```
+
+打开 <http://127.0.0.1:3001> 即可进入控制台。默认注入 5 条标注 `synthetic` 的演示 Case（可用 `PR_REVIEW_DEMO_SEED=false` 关闭）。
+
+**开发模式（前后端分离热更新）**：终端 1 运行 `yarn pr-review:server`；终端 2 运行 `yarn pr-review:console`（Vite dev server，端口 5173，自动代理 `/api` 与 `/uploads`）。
+
+### 核心能力
+
+- **多模态提交**：文案 + 图片（PNG/JPG/GIF/WebP，服务端魔数嗅探校验）+ 来源链接。
+- **五维审核**：Planner → 五个并行 Specialist → Evidence Critic → Decision Judge → 确定性 Policy Guard；失败一律 fail closed，绝不默认通过。
+- **人工审批流**：运营 →（含图）视觉 → 合规 → 负责人 → 模拟排期；角色 × 阶段权限矩阵（dev-header 开发身份），提交者不得自审最终关。
+- **可追溯**：不可变 ContentVersion、append-only 审计时间线、版本 diff、证据快照。
+- **安全边界**：MockPublisher 默认，无任何真实发布路径；密钥不出服务端；评估指标不预置、不伪造。
+
+### 环境变量
+
+复制 `.env.pr-review.example` 为 `.env` 即可覆盖默认值；mock 模式零 Key 可运行。启用真实 DeepSeek/Qwen 审核（`PR_REVIEW_EXECUTION_MODE=hybrid`）见 `docs/pr-review/06-environment-and-api-config.md`。
+
+### 测试与质量
+
+```bash
+yarn test                                     # 全部单元测试
+yarn pr-review:docs:check --task SPRINT-005   # Docs-first 共变更检查
+yarn pr-review:config:check                   # 配置 doctor（脱敏）
+yarn pr-review:eval:validate                  # Benchmark 资产校验（不调真实模型）
+```
+
+---
+
+## Legacy: URL-to-Post Agent（上游原版）
+
 This repository contains an 'agent' which can take in a URL, and generate a Twitter & LinkedIn post based on the content of the URL. It uses a human-in-the-loop (HITL) flow to handle authentication with different social media platforms, and to allow the user to make changes, or accept/reject the generated post.
 
 ![Screenshot of the social media agent flow](./static/agent_flow.png)

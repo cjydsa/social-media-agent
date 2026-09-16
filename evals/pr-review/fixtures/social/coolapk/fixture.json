@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "social-fixture-v1",
+  "platform": "COOLAPK",
+  "accessMode": "local_fixture",
+  "provenance": "synthetic",
+  "redactionNote": "Synthetic contract fixture; no real user data.",
+  "posts": [
+    {
+      "platform": "COOLAPK",
+      "postId": "coolapk_post_001",
+      "canonicalUrl": null,
+      "title": "版本反馈",
+      "text": "用户反馈新版本存在故障，需要客服与产品证据交叉确认。",
+      "mediaType": "text",
+      "publishedAt": "2026-09-01T01:00:00.000Z",
+      "collectedAt": "2026-09-01T02:00:00.000Z",
+      "author": {
+        "authorIdHash": "synthetic_coolapk_author_001",
+        "displayName": null,
+        "verifiedType": null
+      },
+      "engagement": {
+        "likes": null,
+        "comments": null,
+        "shares": null,
+        "favorites": null,
+        "views": null
+      },
+      "context": {
+        "hashtags": [],
+        "keywords": ["版本", "故障"],
+        "topic": "产品反馈",
+        "language": "zh-CN"
+      },
+      "source": {
+        "accessMode": "local_fixture",
+        "sourceAdapter": "LocalFixtureSocialAdapter",
+        "fetchedAt": "2026-09-01T02:00:00.000Z"
+      }
+    }
+  ],
+  "comments": []
+}

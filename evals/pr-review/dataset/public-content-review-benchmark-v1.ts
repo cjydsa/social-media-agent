@@ -1,0 +1,271 @@
+import {
+  type BenchmarkCase,
+  BenchmarkCaseSchema,
+  BenchmarkManifestSchema,
+  type BenchmarkManifest,
+} from "../schemas.js";
+
+type GroupDefinition = Omit<BenchmarkCase, "id" | "content" | "split"> & {
+  slug: string;
+  contents: string[];
+};
+
+const createdAt = "2026-09-01T00:00:00.000Z";
+
+const groups: GroupDefinition[] = [
+  {
+    slug: "normal",
+    contentType: "SOCIAL_POST",
+    platform: ["WEIBO"],
+    expectedDecision: "PASS",
+    expectedDimensions: [],
+    expectedIssues: [],
+    expectedSeverity: "LOW",
+    requiredEvidence: [],
+    provenance: "synthetic",
+    notes: "正常低风险内容，用于校验系统不应过度阻断。",
+    contents: [
+      "我们将在本周发布产品使用技巧，帮助用户了解常见功能入口。",
+      "活动页面已上线，欢迎关注官方渠道了解参与方式。",
+      "本次版本更新包含若干体验优化，完整说明见官方发布记录。",
+      "感谢用户反馈，我们会继续收集建议并优化后续体验。",
+      "官方社区将举办问答活动，产品经理会解答常见使用问题。",
+      "节假日期间客服响应时间可能略有延长，紧急问题可通过官方渠道提交。",
+      "我们整理了新手指南，帮助用户更快完成基础设置。",
+      "本周直播将介绍产品场景案例，不涉及未发布功能承诺。",
+      "欢迎大家在评论区提出建议，我们会统一整理后反馈给团队。",
+    ],
+  },
+  {
+    slug: "public-relations",
+    contentType: "EXTERNAL_RESPONSE",
+    platform: ["WEIBO"],
+    expectedDecision: "HUMAN_REVIEW",
+    expectedDimensions: ["PUBLIC_RELATIONS"],
+    expectedIssues: ["PUBLIC_SENTIMENT", "CONTEXTUAL_MISINTERPRETATION"],
+    expectedSeverity: "HIGH",
+    requiredEvidence: ["SOCIAL_CONTEXT", "BRAND_KNOWLEDGE"],
+    provenance: "synthetic",
+    notes: "公关与舆情风险，需社交语境和品牌口径证据。",
+    contents: [
+      "外界对这件事的质疑完全没有必要，用户只是误解了我们的好意。",
+      "关于近期讨论，我们认为责任主要在个别用户没有正确使用产品。",
+      "竞品所谓优势只是营销包装，真正懂行业的人都知道我们的方案更可靠。",
+      "针对投诉风波，我们没有义务逐条回应网络上的片面说法。",
+      "这次争议并不严重，媒体没有必要继续放大。",
+      "如果有人断章取义，我们会保留追究权利，不再解释细节。",
+      "近期热点与我们无关，请大家不要将两件事混为一谈。",
+      "官方已充分说明，继续质疑没有意义。",
+      "网络上的负面声音主要来自不了解事实的人群。",
+    ],
+  },
+  {
+    slug: "operations",
+    contentType: "BRAND_CAMPAIGN",
+    platform: ["XIAOHONGSHU"],
+    expectedDecision: "REVISE",
+    expectedDimensions: ["OPERATIONS"],
+    expectedIssues: ["PLATFORM_SUITABILITY", "CTA_URL_HASHTAG"],
+    expectedSeverity: "MEDIUM",
+    requiredEvidence: ["PLATFORM_POLICY", "CAMPAIGN_BRIEF"],
+    provenance: "synthetic",
+    notes: "运营与渠道风险，需平台规则和活动 brief。",
+    contents: [
+      "点击短链立即领取福利，所有平台都用同一套话术发布。",
+      "小红书笔记正文只放购买链接，不需要解释活动规则。",
+      "今晚所有账号同步刷屏发布，不用考虑账号定位差异。",
+      "话题标签先随便写几个热门词，后续再根据流量调整。",
+      "活动还没确认奖品数量，但文案先写限量必得。",
+      "渠道素材暂缺，先用旧海报配新活动标题。",
+      "这条内容在抖音、小红书、B站完全复用，不做适配。",
+      "发布时间与上一个促销活动重叠，但可以一起冲量。",
+      "CTA 放在评论区即可，正文不用说明报名方式。",
+    ],
+  },
+  {
+    slug: "product",
+    contentType: "PRODUCT_LAUNCH",
+    platform: ["BILIBILI"],
+    expectedDecision: "BLOCK",
+    expectedDimensions: ["PRODUCT"],
+    expectedIssues: ["UNSUPPORTED_PRODUCT_CLAIM", "PERFORMANCE_CLAIM"],
+    expectedSeverity: "HIGH",
+    requiredEvidence: ["PRODUCT_KNOWLEDGE", "APPROVED_CLAIMS"],
+    provenance: "synthetic",
+    notes: "产品与事实风险，需产品知识和批准声明。",
+    contents: [
+      "新版本性能提升十倍，行业内没有任何同类产品能接近。",
+      "该功能已经覆盖所有用户，即使实际灰度还在进行也可以这样说。",
+      "我们的电池续航一定超过竞品两倍，无需附第三方测试条件。",
+      "价格会保持全年最低，后续不会再有任何调整。",
+      "产品支持所有主流设备，但兼容列表尚未确认。",
+      "发布稿引用第三方报告结论，但没有报告名称和时间。",
+      "这项 AI 能力可以保证 100% 准确识别用户意图。",
+      "海外版本将在本月全部上线，但区域发布时间还未批准。",
+      "我们可以宣称新品是全球首个，暂时没有核验材料。",
+    ],
+  },
+  {
+    slug: "customer",
+    contentType: "SOCIAL_POST",
+    platform: ["COOLAPK"],
+    expectedDecision: "REVISE",
+    expectedDimensions: ["CUSTOMER"],
+    expectedIssues: ["CUSTOMER_EXPECTATION", "SERVICE_COMMITMENT"],
+    expectedSeverity: "MEDIUM",
+    requiredEvidence: ["CUSTOMER_FAQ", "SERVICE_POLICY"],
+    provenance: "synthetic",
+    notes: "客户与用户潜在风险，需 FAQ 和服务政策。",
+    contents: [
+      "遇到任何问题我们都会第一时间赔偿，让大家没有后顾之忧。",
+      "所有用户反馈都会在当天解决，请放心升级。",
+      "如果体验不满意，可以直接找客服获得补偿。",
+      "这个功能适合所有人使用，不存在学习成本。",
+      "新版本会彻底解决大家之前遇到的卡顿问题。",
+      "售后团队会随时在线，任何时间都能立刻响应。",
+      "老用户不会受到任何影响，无需关注兼容说明。",
+      "如果出现问题，官方一定负责到底。",
+      "这次改版不会让任何用户感到不适。",
+    ],
+  },
+  {
+    slug: "compliance-safety",
+    contentType: "PRESS_RELEASE",
+    platform: ["WEIBO"],
+    expectedDecision: "BLOCK",
+    expectedDimensions: ["COMPLIANCE_SAFETY"],
+    expectedIssues: ["ABSOLUTE_MARKETING_CLAIM", "PRIVACY"],
+    expectedSeverity: "CRITICAL",
+    requiredEvidence: ["PLATFORM_POLICY", "MULTIMODAL_EVIDENCE"],
+    provenance: "synthetic",
+    notes: "合规与内容安全风险，只输出 risk，不输出最终法律判断。",
+    contents: [
+      "我们是全国第一且唯一安全的方案，并展示用户手机号作为案例。",
+      "海报写着行业最佳，没有任何限制条件或证明材料。",
+      "正文包含客户内部项目名称和未公开采购金额。",
+      "对比图直接使用竞品 Logo 并暗示其产品不安全。",
+      "活动文案承诺疗效式结果，但产品并非医疗服务。",
+      "公开回应中包含投诉用户真实姓名和联系方式。",
+      "宣传语使用永久有效、绝对可靠、零风险等表达。",
+      "视频字幕展示后台截图，其中包含个人信息字段。",
+      "内容暗示监管已经背书，但没有公开授权依据。",
+    ],
+  },
+  {
+    slug: "multi-risk",
+    contentType: "MULTIMODAL_POST",
+    platform: ["WEIBO", "XIAOHONGSHU"],
+    expectedDecision: "HUMAN_REVIEW",
+    expectedDimensions: ["PUBLIC_RELATIONS", "PRODUCT", "COMPLIANCE_SAFETY"],
+    expectedIssues: [
+      "PUBLIC_SENTIMENT",
+      "UNSUPPORTED_PRODUCT_CLAIM",
+      "ABSOLUTE_MARKETING_CLAIM",
+    ],
+    expectedSeverity: "HIGH",
+    requiredEvidence: [
+      "SOCIAL_CONTEXT",
+      "PRODUCT_KNOWLEDGE",
+      "PLATFORM_POLICY",
+    ],
+    provenance: "synthetic",
+    notes: "多风险综合场景。",
+    contents: [
+      "争议之后我们依然是行业第一，新功能也已经全面领先竞品。",
+      "用户质疑没有依据，我们的测试数据证明所有版本都完美。",
+      "海报和正文同时强调绝对安全，并回应近期投诉无需担心。",
+      "竞品近期事故说明他们不可靠，而我们的方案没有任何风险。",
+      "当前舆情仍在讨论，但文案准备直接承诺性能翻倍。",
+      "客户担忧只是误读，官方可以继续写全球领先和永久保障。",
+      "多平台统一发布危机回应，并附带未经核验的产品对比结论。",
+      "素材里出现行业第一，正文又引用未确认的第三方报告。",
+      "评论区已有负面讨论，但文案计划强调没有任何用户受影响。",
+    ],
+  },
+  {
+    slug: "missing-evidence",
+    contentType: "PRODUCT_LAUNCH",
+    platform: ["BILIBILI"],
+    expectedDecision: "HUMAN_REVIEW",
+    expectedDimensions: ["PRODUCT", "COMPLIANCE_SAFETY"],
+    expectedIssues: ["THIRD_PARTY_CITATION", "UNSUPPORTED_PRODUCT_CLAIM"],
+    expectedSeverity: "HIGH",
+    requiredEvidence: ["PRODUCT_KNOWLEDGE", "APPROVED_CLAIMS"],
+    provenance: "synthetic",
+    notes: "关键证据缺失，不得自动 PASS。",
+    contents: [
+      "根据权威报告，我们已经成为细分市场第一，但报告暂未提供。",
+      "宣传材料引用用户调研结论，不过样本和时间待补充。",
+      "发布稿写明通过多项安全认证，但认证编号尚未确认。",
+      "文案称第三方测试证明续航领先，但没有测试条件。",
+      "产品参数来自内部讨论记录，尚未进入批准声明库。",
+      "合作伙伴评价显示效果最佳，但授权引用文件缺失。",
+      "图片中出现测试分数，来源文档尚未归档。",
+      "客服政策需要核对，但正文已写无条件补偿。",
+      "平台规则可能要求广告标识，但投放形式尚未确认。",
+    ],
+  },
+  {
+    slug: "agent-conflict",
+    contentType: "EXTERNAL_RESPONSE",
+    platform: ["WEIBO"],
+    expectedDecision: "HUMAN_REVIEW",
+    expectedDimensions: ["PUBLIC_RELATIONS", "CUSTOMER"],
+    expectedIssues: ["CUSTOMER_COMPLAINT_SENSITIVITY", "CRISIS_RESPONSE"],
+    expectedSeverity: "MEDIUM",
+    requiredEvidence: ["SOCIAL_CONTEXT", "SERVICE_POLICY"],
+    provenance: "synthetic",
+    notes: "用于 Evidence Critic / Judge 处理跨 Agent 冲突。",
+    contents: [
+      "我们会积极解决问题，但不会逐一回应所有投诉。",
+      "用户体验很重要，不过此次反馈主要是个别误解。",
+      "客服会持续跟进，但官方回应不承诺具体补偿。",
+      "我们理解大家关切，同时认为当前讨论被部分夸大。",
+      "产品没有普遍问题，但会继续观察社群反馈。",
+      "官方会提供帮助，但不接受没有依据的负面评价。",
+      "我们重视意见，不过短期内不会调整已发布功能。",
+      "售后政策保持不变，但文案希望表达更强承诺。",
+      "回应希望安抚用户，但法务建议避免责任归因。",
+    ],
+  },
+];
+
+function buildCases(): BenchmarkCase[] {
+  return groups.flatMap((group) => {
+    const { contents, slug, ...caseBase } = group;
+    return contents.map((content, index) =>
+      BenchmarkCaseSchema.parse({
+        ...caseBase,
+        id: `pcrv1-${slug}-${index === 8 ? "test" : "dev"}-${String(
+          index + 1,
+        ).padStart(2, "0")}`,
+        content,
+        split: index === 8 ? "test" : "dev",
+      }),
+    );
+  });
+}
+
+export const publicContentReviewBenchmarkV1Cases = buildCases();
+
+export const publicContentReviewBenchmarkV1Manifest: BenchmarkManifest =
+  BenchmarkManifestSchema.parse({
+    datasetVersion: "public-content-review-benchmark-v1.0.0",
+    createdAt,
+    caseCount: publicContentReviewBenchmarkV1Cases.length,
+    splitCounts: {
+      dev: publicContentReviewBenchmarkV1Cases.filter(
+        (benchmarkCase) => benchmarkCase.split === "dev",
+      ).length,
+      test: publicContentReviewBenchmarkV1Cases.filter(
+        (benchmarkCase) => benchmarkCase.split === "test",
+      ).length,
+    },
+    provenanceCounts: {
+      synthetic: publicContentReviewBenchmarkV1Cases.filter(
+        (benchmarkCase) => benchmarkCase.provenance === "synthetic",
+      ).length,
+      manually_curated: 0,
+      authorized_export: 0,
+    },
+  });

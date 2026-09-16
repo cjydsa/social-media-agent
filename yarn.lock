@@ -1210,10 +1210,10 @@
     uuid "^14.0.0"
     zod "^3.25.76 || ^4"
 
-"@langchain/core@^1.2.3":
-  version "1.2.3"
-  resolved "https://registry.yarnpkg.com/@langchain/core/-/core-1.2.3.tgz#27ef4951b3226d7f25a753f28c72ff9d1ab67feb"
-  integrity sha512-F+L5SsciykwDl7eDxacnhDTcWe1IF6jetzfkvI5PPfq6ogWHO7xcjU90SGh/3lqbbS0tgun+qF01KIqxawrCsA==
+"@langchain/core@^1.2.8":
+  version "1.2.8"
+  resolved "https://registry.npmmirror.com/@langchain/core/-/core-1.2.8.tgz#498147fa5a634b4b9e24d63883c930c28203fbff"
+  integrity sha512-ppi2UaCYKqM4LEY8NWQ/JZ0Of0MAngHRvclceVeEQklcD/M6QKanlHPWblDnLO2m4vz7987b1Z4r33Ps6lf/ig==
   dependencies:
     "@cfworker/json-schema" "^4.0.2"
     "@standard-schema/spec" "^1.1.0"
@@ -1222,6 +1222,13 @@
     mustache "^4.2.0"
     p-queue "^6.6.2"
     zod "^3.25.76 || ^4"
+
+"@langchain/deepseek@^1.1.8":
+  version "1.1.8"
+  resolved "https://registry.npmmirror.com/@langchain/deepseek/-/deepseek-1.1.8.tgz#a7efec6b829795f091dbe8011962d2b426cd80a5"
+  integrity sha512-PYsHjm5dkEgl73/B9np62q6zNK4YVuJ5K1ouEQd9s9iTtEQYpjDrGgRY/FMNDEKyJ5mpio6feX6oTUpvebLXqg==
+  dependencies:
+    "@langchain/openai" "1.5.8"
 
 "@langchain/google-common@2.2.0":
   version "2.2.0"
@@ -1277,7 +1284,16 @@
     openai "^6.34.0"
     zod "^3.25.76 || ^4"
 
-"@langchain/openai@^1.4.1", "@langchain/openai@^1.5.5":
+"@langchain/openai@1.5.8", "@langchain/openai@^1.5.8":
+  version "1.5.8"
+  resolved "https://registry.npmmirror.com/@langchain/openai/-/openai-1.5.8.tgz#242d60b2802a389766af75b73ece90a73111558e"
+  integrity sha512-BKzIgWYSXQ03V9F9u46vC12vZjHy8wyOt8H7VUrTWt6VdwSnnxXmjeEUEIkLjpU/bqVkGzHLXGCSMEHYbDSi5Q==
+  dependencies:
+    js-tiktoken "^1.0.12"
+    openai "^6.41.0"
+    zod "^3.25.76 || ^4"
+
+"@langchain/openai@^1.4.1":
   version "1.5.5"
   resolved "https://registry.yarnpkg.com/@langchain/openai/-/openai-1.5.5.tgz#b2f6bd17f368df1515737e0053e2cc410b55c360"
   integrity sha512-wX7dwb9z4nf5FHXlIl/X2mk08pzonvRHCt1D4+s1zXLP0duYDC95j7dulPIQJ6fmhbyYQc9Ki8mEhY/D1lB8kw==

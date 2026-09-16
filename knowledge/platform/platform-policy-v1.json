@@ -1,0 +1,9 @@
+{
+  "documentId": "platform_policy_v1",
+  "sourceType": "PLATFORM",
+  "version": "platform-2026-09-01",
+  "effectiveAt": "2026-09-01T00:00:00.000Z",
+  "title": "平台投放与内容适配提示",
+  "content": "不同平台需要适配账号定位、CTA、话题标签、素材完整性和活动节奏。短链、刷屏、未确认奖品数量和跨平台完全复用均可能增加运营风险。",
+  "tags": ["platform", "operations", "campaign"]
+}

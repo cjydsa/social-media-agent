@@ -1,0 +1,9 @@
+{
+  "documentId": "compliance_safety_v1",
+  "sourceType": "COMPLIANCE",
+  "version": "compliance-2026-09-01",
+  "effectiveAt": "2026-09-01T00:00:00.000Z",
+  "title": "合规与内容安全风险提示",
+  "content": "广告文案中的绝对化用语、个人信息泄露、客户内部信息、未经授权背书和误导性声明应进入人工审核或阻断。系统只输出合规风险，不输出最终法律判断。",
+  "tags": ["compliance", "privacy", "advertising"]
+}

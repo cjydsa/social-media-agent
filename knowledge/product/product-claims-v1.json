@@ -1,0 +1,9 @@
+{
+  "documentId": "product_claims_v1",
+  "sourceType": "PRODUCT",
+  "version": "product-2026-09-01",
+  "effectiveAt": "2026-09-01T00:00:00.000Z",
+  "title": "产品声明证据要求",
+  "content": "性能提升、行业排名、上市时间、价格承诺、版本覆盖和第三方报告引用必须有批准声明或可追溯证据。未经证据支持的行业第一、十倍提升、永久最低价不得直接发布。",
+  "tags": ["product", "claims", "evidence"]
+}

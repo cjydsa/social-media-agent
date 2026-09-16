@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "social-fixture-v1",
+  "platform": "WEIBO",
+  "accessMode": "local_fixture",
+  "provenance": "synthetic",
+  "redactionNote": "Synthetic contract fixture; no real user data.",
+  "posts": [
+    {
+      "platform": "WEIBO",
+      "postId": "weibo_post_001",
+      "canonicalUrl": null,
+      "title": null,
+      "text": "新品发布后有用户讨论续航体验，需要结合产品证据判断风险。",
+      "mediaType": "text",
+      "publishedAt": "2026-09-01T01:00:00.000Z",
+      "collectedAt": "2026-09-01T02:00:00.000Z",
+      "author": {
+        "authorIdHash": "synthetic_weibo_author_001",
+        "displayName": null,
+        "verifiedType": null
+      },
+      "engagement": {
+        "likes": null,
+        "comments": null,
+        "shares": null,
+        "favorites": null,
+        "views": null
+      },
+      "context": {
+        "hashtags": ["新品"],
+        "keywords": ["续航", "体验"],
+        "topic": "新品体验",
+        "language": "zh-CN"
+      },
+      "source": {
+        "accessMode": "local_fixture",
+        "sourceAdapter": "LocalFixtureSocialAdapter",
+        "fetchedAt": "2026-09-01T02:00:00.000Z"
+      }
+    }
+  ],
+  "comments": [
+    {
+      "platform": "WEIBO",
+      "commentId": "weibo_comment_001",
+      "postId": "weibo_post_001",
+      "authorIdHash": "synthetic_weibo_commenter_001",
+      "text": "担心续航宣传和实际体验差距导致投诉。",
+      "publishedAt": "2026-09-01T01:30:00.000Z",
+      "likes": null,
+      "source": {
+        "accessMode": "local_fixture",
+        "sourceAdapter": "LocalFixtureSocialAdapter",
+        "fetchedAt": "2026-09-01T02:00:00.000Z"
+      }
+    }
+  ]
+}
