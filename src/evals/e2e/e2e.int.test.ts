@@ -1,5 +1,3 @@
 // TODO: Re-enable once required credentials are configured.
-import { describe, test } from "@jest/globals";
-describe("E2E eval", () => {
-  test("placeholder", () => {});
-});
+import { test } from "@jest/globals";
+test.skip("E2E eval placeholder", () => {});

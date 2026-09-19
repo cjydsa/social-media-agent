@@ -1,5 +1,4 @@
 // TODO: Re-enable once required credentials are configured.
-import { describe, test } from "@jest/globals";
-describe("GitHub loader", () => {
-  test("placeholder", () => {});
-});
+import { test } from "@jest/globals";
+test.skip("GitHub loader - trending", () => {});
+test.skip("GitHub loader - langchain deps", () => {});

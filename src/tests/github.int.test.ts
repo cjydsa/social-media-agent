@@ -1,5 +1,4 @@
 // TODO: Re-enable once credentials are configured.
-import { describe, test } from "@jest/globals";
-describe("GitHub get file contents", () => {
-  test("placeholder", () => {});
-});
+import { test } from "@jest/globals";
+test.skip("Can get the download_url of a Gif from a public GitHub repo", () => {});
+test.skip("Can get the download_url of an image from a public GitHub repo", () => {});

@@ -1,5 +1,3 @@
 // TODO: Re-enable once required credentials are configured.
-import { describe, test } from "@jest/globals";
-describe("Get tweet content", () => {
-  test("placeholder", () => {});
-});
+import { test } from "@jest/globals";
+test.skip("Get tweet content", () => {});
